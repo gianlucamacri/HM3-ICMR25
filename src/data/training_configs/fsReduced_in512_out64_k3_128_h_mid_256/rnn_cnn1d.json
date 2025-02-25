@@ -1,0 +1,16 @@
+{
+  "ee_args": {
+    "desc_input_feature_size": 512,
+    "desc_model_is_bidirectional": true,
+    "desc_output_feature_size": 64,
+    "kernel_size": 3,
+    "scene_input_channel": 512,
+    "scene_output_channels": 128,
+    "scene_output_feature_size": 64,
+    "useLSTM": false
+  },
+  "strategy_name": "rnn_cnn1d",
+  "transformers_version": "4.34.0",
+  "uses_audio_video_features": null,
+  "uses_flattened_hierarchy": true
+}

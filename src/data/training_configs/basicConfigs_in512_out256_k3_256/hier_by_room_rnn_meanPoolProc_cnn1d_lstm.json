@@ -1,0 +1,22 @@
+{
+  "ee_args": {
+    "desc_input_feature_size": 512,
+    "desc_model_is_bidirectional": true,
+    "desc_output_feature_size": 256,
+    "roomModelArgs": {
+      "out_channels": 256,
+      "scene_in_channels": 512
+    },
+    "scenesSequenceModelArgs": {
+      "feature_size": 256,
+      "in_channels": 256,
+      "kernel_size": 3,
+      "out_channels": 256
+    },
+    "useLSTM": true
+  },
+  "strategy_name": "hier_by_room_rnn_meanPoolProc_cnn1d",
+  "transformers_version": "4.34.0",
+  "uses_audio_video_features": null,
+  "uses_flattened_hierarchy": false
+}

@@ -1,0 +1,21 @@
+{
+    "name": "1tjzS9_STL",
+    "uid": "1tjzS9",
+    "description": "basic experiment with the standard triplet loss",
+    "runs": [
+        {
+            "base_name": "1tjzS9_hier_by_room_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjzu0_hier_by_room_rnn_meanPoolProc_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        }
+    ]
+}

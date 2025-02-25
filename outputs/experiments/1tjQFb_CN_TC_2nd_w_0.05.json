@@ -1,0 +1,35 @@
+{
+    "name": "1tjQFb_CN_TC_2nd_w_0.05",
+    "uid": "1tjQFb",
+    "description": "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components",
+    "runs": [
+        {
+            "base_name": "1tjQFb_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjQem_rnn_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjR36_hier_by_room_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjRcy_hier_by_room_rnn_meanPoolProc_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        }
+    ]
+}

@@ -1,0 +1,49 @@
+{
+    "name": "1tjM4a_hierArt_comparison",
+    "uid": "1tjM4a",
+    "description": "experiments to make a comparison of the proposed architectures with respect to those use in the ",
+    "runs": [
+        {
+            "base_name": "1tjM4a_rnn_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjMEi_rnn_rnn",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjMP3_rnn_cnn1d",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjMa8_hier_by_room_rnn_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjMpm_hier_by_room_rnn_2_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        },
+        {
+            "base_name": "1tjN5i_hier_by_room_rnn_meanPoolProc_cnn1d",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "paperDigitalArtExhibitions",
+            "wandb_project_name": "paperDigitalArtExhibitions"
+        }
+    ]
+}
