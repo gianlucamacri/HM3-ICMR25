@@ -1,11 +1,9 @@
-# digitalArtExhibitionsRetrieval
-
+# HM3
 This project aims at exploring some AI techniques in order to address the retrieval problem of complex 3d scenes based on a user textual query. Specifically the chosen scenario involves 3d scenes regarding exhibitions of art in the for of 2d images and videos.
 
-## setup
+## preliminary setup
 
 You should include setup the following datasets as follows
-
 
 ### SemArt dataset
 
@@ -13,10 +11,10 @@ To complete the `src/data/datasets/SemArt` directory you should download the Sem
 Then unzip the `SemArt.zip` and copy its contents in that folder.
 
 ### SemArtVideoArtGen
-this is a github repo TODO
+This is a github submodule from [this repo](https://github.com/gianlucamacri/SemArtVideoArtGenDataset.git) ans represents the collection of videos.
 
 ### digitalMuseumsSemArtVideoGenDataset
-this is a github repo TODO
+This is a github submodule from [this repo](https://github.com/gianlucamacri/digitalMuseumsSemArtVideoGenDataset.git) and represents the exhibition dataset, which will form the actual SAVAGE dataset when complemented with the previous.
 
 ### Museums3k dataset
 
@@ -41,18 +39,20 @@ python extract_features.py --feature_output_dir_name genMuseums --dataset genera
 
 ### config generation
 
-From the main folder execute 
+From the main folder execute the following to generate the configurations used for the training:
 
+- configurations considering just the povs (internal screenshots)
 ```
 python create_config_files.py --out_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_only --no_image_video --b_mean_pool --b_cnn1d --h_cnn1d --h_rnn --h_rnn_is_bidir --gru --desc_rnn_is_bidir --kernel_size 3 --feature_size 512 --output_feature_size 256 --cnn1d_inter_size 256 --h_inter_feature_size 256
 ```
 
+- configurations considering both the povs (internal screenshots) and the videos
 ```
 python create_config_files.py --out_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --with_video --b_mean_pool --b_cnn1d --h_cnn1d --h_rnn --h_rnn_is_bidir --gru --desc_rnn_is_bidir --kernel_size 3 --feature_size 512 --output_feature_size 256 --cnn1d_inter_size 256 --h_inter_feature_size 256
 ```
 
 
-recreate hierart configs extended
+- configurations to recreate hierart configs, the corresponding ablations and the extensions
 ```
 python create_config_files.py --out_dir src/data/training_configs/hierArt_in512_out256_k3_256_pov_only --no_image_video --b_mean_pool --b_cnn1d --b_rnn --h_cnn1d --h_rnn --h_rnn_is_bidir --scene_rnn_is_bidir --h_mean_pool_hierart --gru --desc_rnn_is_bidir --kernel_size 3 --feature_size 512 --output_feature_size 256 --cnn1d_inter_size 256 --h_inter_feature_size 256
 ```
@@ -61,50 +61,53 @@ python create_config_files.py --out_dir src/data/training_configs/hierArt_in512_
 
 ### training and evaluation
 
+Commands to repeat the executed experiments, as wandb and hf are used fro logging you may want to set the `$WANDB_PROJECT_NAME` and `$HF_USERNAME` env variables and necessary authorizations or disable them beforehand.
+
+
 ```
-python main.py --train --feature_dir museums3k --feature_set_name base_sentence_open_clip  --config_files_dir src/data/training_configs/hierArt_in512_out256_k3_256_pov_only --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 50 --lr 0.001 --number_of_tries 3 --save_strategy last --device cuda --hf_tags "hierart_comparison" --experiment_name hierArt_comparison --experiment_description "experiments to make a comparison of the proposed architectures with respect to those use in the "
+python main.py --train --feature_dir museums3k --feature_set_name base_sentence_open_clip  --config_files_dir src/data/training_configs/hierArt_in512_out256_k3_256_pov_only --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 50 --lr 0.001 --number_of_tries 3 --save_strategy last --device cuda --hf_tags "hierart_comparison" --experiment_name hierArt_comparison --experiment_description "experiments to make a comparison of the proposed architectures with respect to those use in the "
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --hf_tags --hf_tags "STL" "new 16th" --experiment_name "STL" --experiment_description "basic experiment with the standard triplet loss" 
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --hf_tags --hf_tags "STL" "new 16th" --experiment_name "STL" --experiment_description "basic experiment with the standard triplet loss" 
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.75 --hf_tags "new 18th 2nd w 0.75" --experiment_name "CN_TC_2nd_w_0.75" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.75 --hf_tags "new 18th 2nd w 0.75" --experiment_name "CN_TC_2nd_w_0.75" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.5 --hf_tags "new 18th 2nd w 0.5" --experiment_name "CN_TC_2nd_w_0.5" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.5 --hf_tags "new 18th 2nd w 0.5" --experiment_name "CN_TC_2nd_w_0.5" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.25 --hf_tags "new 18th 2nd w 0.25" --experiment_name "CN_TC_2nd_w_0.25" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.25 --hf_tags "new 18th 2nd w 0.25" --experiment_name "CN_TC_2nd_w_0.25" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.1 --hf_tags "new 18th 2nd w 0.1" --experiment_name "CN_TC_2nd_w_0.1" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.1 --hf_tags "new 18th 2nd w 0.1" --experiment_name "CN_TC_2nd_w_0.1" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.05 --hf_tags "new 18th 2nd w 0.05" --experiment_name "CN_TC_2nd_w_0.05" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.05 --hf_tags "new 18th 2nd w 0.05" --experiment_name "CN_TC_2nd_w_0.05" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.01 --hf_tags "new 18th 2nd w 0.01" --experiment_name "CN_TC_2nd_w_0.01" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.01 --hf_tags "new 18th 2nd w 0.01" --experiment_name "CN_TC_2nd_w_0.01" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0 --hf_tags "new 18th 2nd w 0" "new 17th" --experiment_name "CN_TC_2nd_w_0" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components, second loss weight to 0, equivalent to not using it"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0 --hf_tags "new 18th 2nd w 0" "new 17th" --experiment_name "CN_TC_2nd_w_0" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components, second loss weight to 0, equivalent to not using it"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_only --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.05 --hf_tags "new 18th 2nd w 0.05" --experiment_name "CN_TC_2nd_w_0.05" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_only --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.15 --second_loss_component_weight 0.05 --hf_tags "new 18th 2nd w 0.05" --experiment_name "CN_TC_2nd_w_0.05" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.1 --second_loss_component_weight 0.05 --hf_tags "new 22th 2nd w 0.05 2nd m 0.1" --experiment_name "CN_TC_2nd_w_0.05_2nd_m_0.1" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.1, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.1 --second_loss_component_weight 0.05 --hf_tags "new 22th 2nd w 0.05 2nd m 0.1" --experiment_name "CN_TC_2nd_w_0.05_2nd_m_0.1" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.1, varing the weight of the two components"
 ```
 
 ```
-python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name paperDigitalArtExhibitions --hf_user_name paperDigitalArtExhibitions --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.2 --second_loss_component_weight 0.05 --hf_tags "new 22th 2nd w 0.05 2nd m 0.2" --experiment_name "CN_TC_2nd_w_0.05_2nd_m_0.2" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.2, varing the weight of the two components"
+python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.2 --second_loss_component_weight 0.05 --hf_tags "new 22th 2nd w 0.05 2nd m 0.2" --experiment_name "CN_TC_2nd_w_0.05_2nd_m_0.2" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.2, varing the weight of the two components"
 ```
