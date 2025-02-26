@@ -171,8 +171,12 @@ models/
 
 src/data/datasets/*
 
+!src/data/datasets/museums3k/
 !src/data/datasets/museums3k/utils.py
+!src/data/datasets/SemArt
 !src/data/datasets/SemArt/utils.py
+!src/data/datasets/digitalMuseumsSemArtVideoGenDataset
+!src/data/datasets/SemArtVideoArtGenDataset
 
 
 src/data/features

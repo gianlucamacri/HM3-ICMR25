@@ -1,0 +1,6 @@
+[submodule "src/data/datasets/digitalMuseumsSemArtVideoGenDataset"]
+	path = src/data/datasets/digitalMuseumsSemArtVideoGenDataset
+	url = git@github.com:gianlucamacri/digitalMuseumsSemArtVideoGenDataset.git
+[submodule "src/data/datasets/SemArtVideoArtGenDataset"]
+	path = src/data/datasets/SemArtVideoArtGenDataset
+	url = git@github.com:gianlucamacri/SemArtVideoArtGenDataset.git
