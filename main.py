@@ -35,13 +35,13 @@ def main(args):
     exhibitionDataset = None
     if dataset_name == 'digitalExps':
         #todo implement this
-        from datasets.artExhibitionDataset.utils import ArtExhibitionDataset
+        from src.data.datasets.artExhibitionDataset.utils import ArtExhibitionDataset
         exhibitionDataset = ArtExhibitionDataset(skip_description_and_artworks_loading=True)
     elif dataset_name == 'generatedDigitalExps':
-        from datasets.digitalMuseumsSemArtVideoGenDataset.utils import DigitalMuseumsSemArtVideoGenDataset
+        from src.data.datasets.digitalMuseumsSemArtVideoGenDataset.utils import DigitalMuseumsSemArtVideoGenDataset
         exhibitionDataset = DigitalMuseumsSemArtVideoGenDataset(skip_description_and_artworks_loading=True)
     elif dataset_name == 'museums3k':
-        from datasets.museums3k.utils import Museums3kDataset
+        from src.data.datasets.museums3k.utils import Museums3kDataset
         exhibitionDataset = Museums3kDataset()
     else:
         assert False, f"unimplemented dataset choice: {dataset_name}"

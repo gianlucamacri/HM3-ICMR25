@@ -166,7 +166,8 @@ cython_debug/
 
 models/oldTests/*
 
-models/
+models/*
+!models/
 
 
 src/data/datasets/*
@@ -179,7 +180,9 @@ src/data/datasets/*
 !src/data/datasets/SemArtVideoArtGenDataset
 
 
-src/data/features
+src/data/features/*
+!src/data/features/.keep
+
 
 outputs/logs
 outputs/metrics
