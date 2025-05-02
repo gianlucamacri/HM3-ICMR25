@@ -64,7 +64,7 @@ conda activate hm3
 
 ### feature extraction
 
-You can download the pre--extracted features from [zenodo]([todo](https://zenodo.org/records/15321857)) and extract their content to `src/data/features`.
+You can download the pre--extracted features from [zenodo](https://zenodo.org/records/15321857) and extract their content to `src/data/features`.
 
 Alternatively you may use the following steps to replicate on your own the feature extraction process (**warning**: it may take a bit of time).
 
