@@ -169,3 +169,10 @@ python main.py --train --feature_dir genMuseums --feature_set_name base_by_sente
 ```
 python main.py --train --feature_dir genMuseums --feature_set_name base_by_sentence_clip_32_fs --config_files_dir src/data/training_configs/basicConfigs_in512_out256_k3_256_pov_and_video --seed 424242 --wandb_project_name $WANDB_PROJECT_NAME --hf_user_name $HF_USERNAME --batch_size 64 --epochs 25 --scheduler_step_size 5 --lr 0.0005 --number_of_tries 3 --save_strategy last --device cuda --loss_margin 0.25 --use_categories_in_loss --loss_within_category_margin 0.2 --second_loss_component_weight 0.05 --hf_tags "new 22th 2nd w 0.05 2nd m 0.2" --experiment_name "CN_TC_2nd_w_0.05_2nd_m_0.2" --experiment_description "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.2, varing the weight of the two components"
 ```
+
+
+## Authors
+
+Macrì Gianluca (@gianlucamacri), Bazzana Lorenzo (@lorenzobazzana), Falcon Alex (@aranciokov), Serra Giuseppe
+
+Other references can be found in the paper.
