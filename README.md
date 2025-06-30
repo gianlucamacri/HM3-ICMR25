@@ -1,4 +1,7 @@
 # HM3: Hierarchical Modeling of Multimedia Metaverses on 10000 Thematic Museums via Theme-aware Contrastive Loss Function
+
+Links to the paper: [doi](https://doi.org/10.1145/3731715.3733358), [video presentation](https://1drv.ms/v/c/7fe37a7ac93d8397/EZO5Kb6RVhZPnoHgAPylCIYBblz0sH5oVC94q9kCpmvk3A?e=HzX8pI) 
+
 This project aims at exploring some AI techniques in order to address the retrieval problem of complex 3d scenes based on a user textual query. Specifically the chosen scenario involves 3d scenes regarding exhibitions of art in the for of 2d images and videos.
 
 ## requirements
