@@ -179,6 +179,14 @@ src/data/datasets/*
 !src/data/datasets/digitalMuseumsSemArtVideoGenDataset
 !src/data/datasets/SemArtVideoArtGenDataset
 
+src/data/datasets/SemArt/Images/
+src/data/datasets/SemArt/README.txt
+src/data/datasets/SemArt/human_difficult.csv
+src/data/datasets/SemArt/human_easy.csv
+src/data/datasets/SemArt/semart_test.csv
+src/data/datasets/SemArt/semart_train.csv
+src/data/datasets/SemArt/semart_val.csv
+
 
 src/data/features/*
 !src/data/features/.keep
