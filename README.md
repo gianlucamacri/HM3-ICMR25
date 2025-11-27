@@ -176,3 +176,27 @@ python main.py --train --feature_dir genMuseums --feature_set_name base_by_sente
 Macrì Gianluca (@gianlucamacri), Bazzana Lorenzo (@lorenzobazzana), Falcon Alex (@aranciokov), Serra Giuseppe
 
 Other references can be found in the paper.
+
+## Cite us
+
+To cite us please use the following or refer directly to the [ACM website](https://doi.org/10.1145/3731715.3733358) for other bibliography formats.
+
+```
+@inproceedings{10.1145/3731715.3733358,
+author = {Macr\`{\i}, Gianluca and Bazzana, Lorenzo and Falcon, Alex and Serra, Giuseppe},
+title = {HM3: Hierarchical Modeling of Multimedia Metaverses on 10000 Thematic Museums via Theme-aware Contrastive Loss Function},
+year = {2025},
+isbn = {9798400718779},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3731715.3733358},
+doi = {10.1145/3731715.3733358},
+abstract = {The Metaverse and its immersive environments are gaining significant attention due to their potential applications across various fields, from healthcare to art. As their numbers grow, it becomes difficult to effectively search through them and identify those of interest to the user. Recently, Metaverses were modeled as multimedia-rich 3D scenarios. However, existing works on retrieving them via text have several shortcomings, including the lack of experimentation with joint analysis of heterogeneous multimedia formats within the Metaverse, the use of small-scale datasets with randomly aggregated elements, and the consequent lack of thematic coherence in retrieval methods. To address these issues, we introduce SAVAGE, a novel synthetic dataset of 10,000 thematic exhibitions containing both real-world paintings and generated video artworks. Moreover, we propose HM3, a new hierarchical methodology for Metaverse Retrieval which captures all the contents of the room and integrates both images and videos, while its training is guided by a novel theme-aware loss function. Experiments on SAVAGE demonstrate the effectiveness of HM3 in modelling museums. The method also shows considerable improvements on an existing dataset of Metaverses, with ablation studies and qualitative analyses confirming the utility of the proposed theme-aware loss function.},
+booktitle = {Proceedings of the 2025 International Conference on Multimedia Retrieval},
+pages = {1009–1017},
+numpages = {9},
+keywords = {artistic metaverses, contrastive loss, custom loss function, metaverse retrieval, multimedia, text-museum retrieval},
+location = {Chicago, IL, USA},
+series = {ICMR '25}
+}
+```
