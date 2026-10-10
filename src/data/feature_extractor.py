@@ -112,8 +112,6 @@ class FeatureExtractor():
             splitStratName = ''
         elif split_strategy == TextSplitStrategy.BY_SENTENCE:
             splitStratName = 'SentenceLevelSplit'
-        elif split_strategy == TextSplitStrategy.BY_MAX_LENGTH:
-            splitStratName = f'MaxLenSplit_s{stride}'
         else:
             raise ValueError(f"Unknown implementation for TextSplitStrategy: {split_strategy.name}")
 
@@ -135,19 +133,20 @@ class FeatureExtractor():
         assert self.textExtractor is not None, "textExtractor has not been set"
         self.textExtractor.eval()
         with torch.no_grad():
-            for id, desc in tqdm(descs.items()):
-                if split_strategy is None:
-                    inputs = self.textTokenizer(museumsDataset.flattenDescriptionList(desc), padding='max_length', truncation=True, return_tensors="pt")
-                elif split_strategy == TextSplitStrategy.BY_SENTENCE:
-                    inputs = self.textTokenizer(museumsDataset.flattenDescriptionList(desc), padding='max_length', truncation=True, return_tensors="pt")
-                elif split_strategy == TextSplitStrategy.BY_MAX_LENGTH:
-                    inputs = self.textTokenizer(' '.join(museumsDataset.flattenDescriptionList(desc)), padding='max_length', truncation=True,  return_tensors="pt" , return_overflowing_tokens=True, stride=stride)
-                    _ = inputs.pop('overflow_to_sample_mapping')
-                else:
-                    raise ValueError(f"Unknown implementation for TextSplitStrategy: {split_strategy.name}")
-                inputs=inputs.to(self.device)
-                outputs = self.textExtractor(**inputs)
-                descFeatures[id] = outputs['text_embeds'].detach().to('cpu')
+            for id, roomByRoomDescs in tqdm(descs.items()):
+                encodedDescs = []
+                for desc in roomByRoomDescs:
+                    if split_strategy is None:
+                        inputs = self.textTokenizer(desc, padding='max_length', truncation=True, return_tensors="pt")
+                    elif split_strategy == TextSplitStrategy.BY_SENTENCE:
+                        inputs = self.textTokenizer(desc, padding='max_length', truncation=True, return_tensors="pt")
+                    else:
+                        raise ValueError(f"Unknown implementation for TextSplitStrategy: {split_strategy.name}")
+                    inputs=inputs.to(self.device)
+                    outputs = self.textExtractor(**inputs)
+                    encodedDescs.append(outputs['text_embeds'].detach().to('cpu'))
+
+                descFeatures[id] = encodedDescs
 
 
         return descFeatures

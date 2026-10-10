@@ -1,0 +1,14 @@
+{
+    "name": "1v4c1c_CN_TC_2nd_w_0.05_filtering",
+    "uid": "1v4c1c",
+    "description": "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, 0.05 weight for second component, pov filtering random sampling",
+    "runs": [
+        {
+            "base_name": "1v4c1c_hier_by_room_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        }
+    ]
+}

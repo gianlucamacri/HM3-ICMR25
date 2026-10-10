@@ -29,9 +29,6 @@ def main(args):
     split_strategy = None
     if args.text_split_strategy == 'sentence_by_sentence':
         split_strategy = TextSplitStrategy.BY_SENTENCE
-    elif args.text_split_strategy == 'max_len':
-        split_strategy = TextSplitStrategy.BY_MAX_LENGTH
-        assert args.text_stride >= 0, f'text_stride must be non negative, given {args.text_stride}'
     else:
         assert False, f'unknown {split_strategy}'
     descriptions_fn = extractor.extract_and_store_museum_descriptions_features(expositionsDataset, split_strategy, args.text_stride)

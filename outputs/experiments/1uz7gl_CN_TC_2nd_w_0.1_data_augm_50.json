@@ -1,0 +1,35 @@
+{
+    "name": "1uz7gl_CN_TC_2nd_w_0.1_data_augm_50",
+    "uid": "1uz7gl",
+    "description": "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, data augmentation 50%",
+    "runs": [
+        {
+            "base_name": "1uz7gl_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uz88l_rnn_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uz8Yb_hier_by_room_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uz98B_hier_by_room_rnn_meanPoolProc_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        }
+    ]
+}

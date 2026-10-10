@@ -9,12 +9,23 @@ def evaluate(
     scene_classes=None,
     description_classes=None
 ):
-    # Compute similarity matrix (basically equivalent to calling cosine_sim from utils.model_utils)
-    similarity_matrix = torch.nn.functional.cosine_similarity(
-        output_scene.unsqueeze(1),
-        output_description.unsqueeze(0),
-        dim=-1
-    )  # similarity matrix of shape batchSize x batchSize
+
+    # this is NOT good for large datasets as it computes the full similarity matrix with the batch size dimension too
+    # so it will likely cause out of memory issues
+    # # Compute similarity matrix (basically equivalent to calling cosine_sim from utils.model_utils)
+    # similarity_matrix = torch.nn.functional.cosine_similarity(
+    #     output_scene.unsqueeze(1),
+    #     output_description.unsqueeze(0),
+    #     dim=-1
+    # )  # similarity matrix of shape batchSize x batchSize
+
+    def cosine_similarity_matrix(x, y, normalize=True):
+        if normalize:
+            x = torch.nn.functional.normalize(x, p=2, dim=1)  # [N, D]
+            y = torch.nn.functional.normalize(y, p=2, dim=1)  # [M, D]
+        return x @ y.T   # [N, M] dot product = cosine similarity if normalized
+    similarity_matrix = cosine_similarity_matrix(output_scene, output_description, normalize=True)
+
 
     sd_rank_matrix = torch.argsort(similarity_matrix, descending=True, dim=1)  # Scene-to-Description ranks
     ds_rank_matrix = torch.argsort(similarity_matrix.T, descending=True, dim=1)  # Description-to-Scene ranks

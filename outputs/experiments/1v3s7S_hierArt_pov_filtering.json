@@ -1,0 +1,14 @@
+{
+    "name": "1v3s7S_hierArt_pov_filtering",
+    "uid": "1v3s7S",
+    "description": "experiments to apply room fixed filtering to museums3k pov to check for usefuleness of data augmentation strategy",
+    "runs": [
+        {
+            "base_name": "1v3s7S_hier_by_room_rnn_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        }
+    ]
+}

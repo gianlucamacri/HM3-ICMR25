@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from torch.utils.data import Dataset
 import itertools
-
+import pickle
 
 class Museums3kDataset(Dataset):
 
@@ -15,6 +15,7 @@ class Museums3kDataset(Dataset):
         
         data_scene_path = "tmp_museums/open_clip_features_museums3k/images"
         data_description_path = "tmp_museums/open_clip_features_museums3k/descriptions/sentences"
+        token_string_path = "tmp_museums/open_clip_features_museums3k/descriptions/tokens_strings"
 
         self.images_per_room  = 12
 
@@ -28,6 +29,11 @@ class Museums3kDataset(Dataset):
 
         self.pov_images = [torch.load(os.path.join(Museums3kDataset.__package_dir, data_scene_path, f"{sm}.pt")) for sm in available_data]
         self.descs = [torch.load(os.path.join(Museums3kDataset.__package_dir, data_description_path, f"{sm}.pt")) for sm in available_data]
+        self.token_strings = []
+        for sm in available_data:
+            with open(os.path.join(Museums3kDataset.__package_dir, token_string_path, f"{sm}.pkl"), 'rb') as f:
+                token_string = pickle.load(f)
+            self.token_strings.append(token_string)
 
         self.id_to_idx_map = {}
         
@@ -48,8 +54,9 @@ class Museums3kDataset(Dataset):
     def __getitem__(self, index):
         desc_tensor = self.descs[index]
         scene_img_tensor = self.pov_images[index]
+        token_string = self.token_strings[index]
         
-        return desc_tensor, scene_img_tensor, index
+        return desc_tensor, token_string, scene_img_tensor, index
     
     def id_to_idx(self, id):
         return self.id_to_idx_map[id]

@@ -52,12 +52,17 @@ def train(full_run_name:str, encodersExecutor:EncodersExecutor, bmm:BestModelMan
     loss_components_weights = [1-args.second_loss_component_weight, args.second_loss_component_weight] if args.second_loss_component_weight is not None else [0.5,0.5]
 
     for ep in tqdm(range(args.epochs)):
-                        
+
+        logger.info(f"Epoch {ep+1}/{args.epochs}")
+        logger.info(f"training")
+
         epoch_loss_train = train_one_epoch(encodersExecutor, loss_fn, args.loss_margin, scheduler, optimizer, dataloaders['train'], args.device, logger, use_wandb, args.use_categories_in_loss, args.loss_within_category_margin, args.new_positive_samples, args.allow_sampling_replacement_of_new_positives, loss_components_weights, args.filter_out_hard_negatives)
 
         # validation on the validation set
+        logger.info(f"getting the outputs on the validation set")
         output_description_val, output_pov_val, output_categories, epoch_loss_val = inference(encodersExecutor, loss_fn, output_feature_size, dataloaders['val'], args.batch_size, args.device, use_wandb, is_test=False, use_categories_in_loss=args.use_categories_in_loss)
 
+        logger.info(f"evaluating on the validation set")
         evalRes = evaluate(output_description=output_description_val,
                             output_scene=output_pov_val,
                             scene_classes= output_categories,
@@ -106,6 +111,7 @@ def train(full_run_name:str, encodersExecutor:EncodersExecutor, bmm:BestModelMan
             })
 
         # Validation train set to get the metrics on the training dataset
+        logger.info(f"getting the outputs on the training set for metrics")
         output_description_val_train, output_pov_val_train, output_categories, epoch_loss_val = inference(encodersExecutor, loss_fn, output_feature_size, dataloaders['train'], args.batch_size, args.device, use_wandb=False, is_test=False, use_categories_in_loss=args.use_categories_in_loss) # use_wandb=False to suppress logging on the training set eval
 
         
@@ -116,6 +122,7 @@ def train(full_run_name:str, encodersExecutor:EncodersExecutor, bmm:BestModelMan
             logger.info(f'Loss Val: {epoch_loss_val}')
             loss_fn.on_epoch_end(epoch_loss_val, train=False)
 
+        logger.info(f"evaluating on the training set for metrics")
         evalRes= evaluate(output_description=output_description_val_train,
                             output_scene=output_pov_val_train,
                             scene_classes= output_categories,
@@ -162,7 +169,7 @@ def train_one_epoch(encodersExecutor, loss_fn, loss_margin, scheduler, optimizer
 
         multiplication_dp = cosine_sim(output_desc_pov, output_pov)
 
-        loss_contrastive = loss_fn.calculate_loss(multiplication_dp, margin=loss_margin, within_category_margin = loss_within_category_margin, categories=categories if use_categories_in_loss else None, new_positive_samples =new_positive_samples, allow_sampling_replacement_of_new_positives=allow_sampling_replacement_of_new_positives, loss_components_weights=loss_components_weights, filter_out_hard_negatives=filter_out_hard_negatives)
+        loss_contrastive = loss_fn.calculate_loss(multiplication_dp, margin=loss_margin, within_category_margin=loss_within_category_margin, categories=categories if use_categories_in_loss else None, new_positive_samples=new_positive_samples, allow_sampling_replacement_of_new_positives=allow_sampling_replacement_of_new_positives, loss_components_weights=loss_components_weights, filter_out_hard_negatives=filter_out_hard_negatives)
 
         loss_contrastive.backward()
         optimizer.step()
@@ -177,7 +184,7 @@ def train_one_epoch(encodersExecutor, loss_fn, loss_margin, scheduler, optimizer
             })
 
     scheduler.step()
-    logger.info(scheduler.get_last_lr())
+    logger.info(f"last learning rate {scheduler.get_last_lr()}")
     epoch_loss_train = total_loss_train / num_batches_train
 
     return epoch_loss_train

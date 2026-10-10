@@ -187,10 +187,15 @@ src/data/datasets/SemArt/semart_test.csv
 src/data/datasets/SemArt/semart_train.csv
 src/data/datasets/SemArt/semart_val.csv
 
+src/data/datasets/museums3k/tmp_museums/
+src/data/datasets/museums3k/indices_museum_dataset.pkl
+
+src/data/tmp
 
 src/data/features/*
 !src/data/features/.keep
 
+wandb/
 
 outputs/logs
 outputs/metrics

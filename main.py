@@ -29,7 +29,7 @@ def main(args):
 
     feature_set = DigitalExhibitionFeatureSet.loadFeatureSet(args.feature_dir, args.feature_set_name)
     dataset_name = feature_set.get_dataset_name()
-    logger.info(f'loaded feature set {args.feature_set_name} form {args.feature_dir} ({dataset_name})')
+    logger.info(f'loaded feature set {args.feature_set_name} from {args.feature_dir} ({dataset_name})')
     desc_feature_size, scene_feature_size, scene_image_art_feature_size, scene_video_art_feature_size = feature_set.get_feature_sizes() # used to check assertions
 
     exhibitionDataset = None
@@ -114,7 +114,7 @@ def main(args):
         if last_run_uses_flattened_hierarchy is None or (last_run_uses_flattened_hierarchy != flatten_hierarchy):
             last_run_uses_flattened_hierarchy = flatten_hierarchy
             logger.info('loading datasets and dataloaders')
-            dataloaders = get_dataloaders(args, flatten_hierarchy, exhibitionDataset)
+            dataloaders = get_dataloaders(args, flatten_hierarchy, exhibitionDataset, logger)
         else:
             logger.info('using previous dataloaders as they have not changed between base and hierarchical')
 
@@ -128,6 +128,8 @@ def main(args):
         }
         if use_wandb:
             run_info['wandb_project_name']=args.wandb_project_name
+
+        check_hf_user_allowed(args.hf_user_name)
         
         experiment_info['runs'].append(run_info)
 
@@ -165,7 +167,8 @@ def main(args):
                         "use_categories_in_loss":args.use_categories_in_loss,
                         "loss_within_category_margin":args.loss_within_category_margin,
                         "new_positive_samples":args.new_positive_samples,
-                        "second_loss_component_weight":args.second_loss_component_weight
+                        "second_loss_component_weight":args.second_loss_component_weight,
+                        "data_augmentation_fn":args.data_augmentation_fn
 
                     },
                     **{f"architecture/{n}": v for n, v in encodersExecutor.getModelClassesDict().items()},
@@ -256,6 +259,9 @@ if __name__ == '__main__':
                         help="directory for the the features (just the dir name, not the path)")
     parser.add_argument('--feature_set_name', type=str, required=True, 
                         help="name for the feature set file (not the path)")
+
+    parser.add_argument('--data_augmentation_fn', type=str, required=False, default=None,
+                        help="name of the filename (without path) of the data augmentation config to be used, if any")
     
     parser.add_argument('--wandb_project_name',type=str, default=None,
                         help='to use weights and biases set this')
@@ -345,6 +351,8 @@ if __name__ == '__main__':
                 assert args.second_loss_component_weight_decay_factor>0 , f"second_loss_component_weight_decay_factor must be positive: {args.second_loss_component_weight_decay_factor}"
 
         assert not args.filter_out_hard_negatives or not args.use_categories_in_loss, f'to be rebalanced'
+    else:
+        assert args.data_augmentation_fn is None, f'data augmentation is not used when not training, please remove it to avoid confusion'
 
     # checks on args
     assert args.load_pretrained_from_file or ((args.config_files or args.config_files_dir) and not (args.config_files and args.config_files_dir)), "exactly one between config_files and config_files_dir has to be set when not loading a pretrained model"
@@ -359,6 +367,12 @@ if __name__ == '__main__':
         for fn in args.config_files:
             assert os.path.exists(fn) and os.path.isfile(fn), f"errors for configuration file {fn}"
 
+
+    # configure logging once at startup
+    logging.basicConfig(level=logging.INFO, force=True)
+    logger = logging.getLogger(__name__)
+    logger.info("Logging initialized!")
+    
     with logging_redirect_tqdm():
         main(args)
 

@@ -88,7 +88,7 @@ class LossContrastive:
             same_cat_fltr = (categories.unsqueeze(0) == categories.unsqueeze(1)).float()
 
             balancing_denominator_c = same_cat_fltr.sum() - same_cat_fltr.shape[0] # remove elements on the diagonal
-            assert (balancing_denominator_c + different_class_balancing_denominator + same_cat_fltr.shape[0]) == (same_cat_fltr.shape[0]**2),f'some rebalancing is wrong'
+            assert (balancing_denominator_c + different_cat_fltr.sum() + same_cat_fltr.shape[0]) == (same_cat_fltr.shape[0]**2),f'some rebalancing is wrong'
             if balancing_denominator_c == 0:
                 balancing_denominator_c = 1 # to avoid a non zero division
                 self.logger.info(f'the filter matrix within the categories is full of zeros, hence the loss for this batch will be 0')

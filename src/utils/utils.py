@@ -95,3 +95,10 @@ def derive_time_from_UID(uid:str, high_precision=True):
 
 def get_abs_class_file_path(class_obj):
     return os.path.dirname(inspect.getfile(class_obj.__class__))
+    
+def check_hf_user_allowed(username: str):
+    from huggingface_hub import HfApi
+    whoami = HfApi().whoami()
+    allowed_users = {el['name'] for el in whoami['orgs']}.union({whoami['name']}) 
+    if username not in allowed_users:
+        raise Exception(f'user {username} not found amond current users and organizations, allowed values are {allowed_users}')

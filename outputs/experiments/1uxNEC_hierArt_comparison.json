@@ -1,0 +1,49 @@
+{
+    "name": "1uxNEC_hierArt_comparison",
+    "uid": "1uxNEC",
+    "description": "experiments to make a comparison of the proposed architectures with respect to those use in the museums3k paper",
+    "runs": [
+        {
+            "base_name": "1uxNEC_rnn_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uxNUI_rnn_rnn",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uxNeu_rnn_cnn1d",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uxNpD_hier_by_room_rnn_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uxO2b_hier_by_room_rnn_2_meanPoolProc",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uxOGE_hier_by_room_rnn_meanPoolProc_cnn1d",
+            "n_tries": 3,
+            "dataset_name": "museums3k",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        }
+    ]
+}

@@ -1,0 +1,35 @@
+{
+    "name": "1uzDqK_CN_TC_2nd_w_0.05_data_augm_25_fix_first_last",
+    "uid": "1uzDqK",
+    "description": "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.15, data augmentation 25% fixing position of first and last room during the augmentation",
+    "runs": [
+        {
+            "base_name": "1uzDqK_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uzEIS_rnn_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uzEiT_hier_by_room_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uzFH9_hier_by_room_rnn_meanPoolProc_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        }
+    ]
+}

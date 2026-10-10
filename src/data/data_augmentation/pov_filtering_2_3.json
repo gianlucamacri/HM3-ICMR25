@@ -1,0 +1,5 @@
+{
+    "name": "PointOfViewFilteringFixedOffset",
+    "first_room_id_to_keep": 2,
+    "offset": 3
+} 

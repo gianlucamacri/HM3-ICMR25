@@ -1,0 +1,6 @@
+{
+    "name": "RoomShuffleAugmentation",
+    "shuffle_prob": 0.75,
+    "fix_first_room": true,
+    "fix_last_room": false
+}

@@ -5,13 +5,31 @@ from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence, pack_padded_sequence
 import pickle
 from itertools import chain
+from typing import Optional
+import json
+import numpy as np
+from tqdm.auto import tqdm
+import math
+import random
 
 
 class ArtExhibitionFeatureDataset(Dataset):
 
     # to do add ignore the lobby for images and videos ? 
 
-    def __init__(self, feature_path, featuresFn,  split, flatten_room_hierarchy:bool, exhibitionsDataset):
+    def __init__(self, feature_path, featuresFn,  split, flatten_room_hierarchy:bool, exhibitionsDataset, data_augmentation_fn:Optional[str]=None, logger=None):
+
+        if data_augmentation_fn is not None:
+            # load the data augmentation config
+            data_augmentation_path = f'src/data/data_augmentation/{data_augmentation_fn}'
+            logger.info(f'setting data augmentation from {data_augmentation_path}')
+            with open(data_augmentation_path, 'r') as f:
+                data_augmentation_dict = json.load(f)
+        else:
+            logger.info(f'no data augmentation requested')
+            data_augmentation_dict = {'name':None}
+        self.data_augmentation = self.__class__.strategy_from_dict(data_augmentation_dict)
+        assert isinstance(self.data_augmentation, self.DataAugmentationStrategy), f"data augmentation fn must be of type DataAugmentationStrategy, got {type(self.data_augmentation)}"
 
         feature_set = DigitalExhibitionFeatureSet.loadFeatureSet(feature_path, featuresFn)
 
@@ -27,16 +45,10 @@ class ArtExhibitionFeatureDataset(Dataset):
         self.data_video_art_path = feature_set.get_video_art(full_path=True)['data_fn']
 
         with open(self.description_path, 'rb') as f:
-            self.description_feature_dict = pickle.load(f)
+            description_feature_dict = pickle.load(f)
 
         with open(self.data_scene_path, 'rb') as f:
-            self.scene_feature_dict = pickle.load(f)
-
-        with open(self.data_image_art_path, 'rb') as f:
-            self.image_artworks_feature_dict = pickle.load(f)
-
-        with open(self.data_video_art_path, 'rb') as f:
-            self.video_artworks_feature_dict = pickle.load(f)['features']
+            scene_feature_dict = pickle.load(f)
 
         def get_museum_category_from_name(name:str) -> str:
             return '_'.join(name.split('_')[-2:])
@@ -46,20 +58,76 @@ class ArtExhibitionFeatureDataset(Dataset):
         
         self.split_ids = exhibitionsDataset.getMuseumList(split)
 
-        def flatten_chain(els):
-            return list(chain(*els))
+        # def flatten_chain(els):
+        #     return list(chain(*els))
         
-        self.description_feature_dict = {k:v for k, v in self.description_feature_dict.items() if k in self.split_ids}
-        self.scene_feature_dict = {k:(v if not flatten_room_hierarchy else flatten_chain(v)) for k, v in self.scene_feature_dict.items() if k in self.split_ids}
+        description_feature_dict = {k:v for k, v in description_feature_dict.items() if k in self.split_ids}
+        #scene_feature_dict = {k:(v if not flatten_room_hierarchy else flatten_chain(v)) for k, v in scene_feature_dict.items() if k in self.split_ids}
 
         self.split_id_idx_map = {}
-        self.image_ids_scene_dict = {} 
-        self.video_ids_scene_dict = {}
+        self.image_ids_scene_dict_hier = {} 
+        self.video_ids_scene_dict_hier = {}
         for id in self.split_ids:
             image_ids, video_ids = exhibitionsDataset.getMuseumArtWorksPerRoom(id)
-            self.image_ids_scene_dict[id] = image_ids if not flatten_room_hierarchy else flatten_chain(image_ids)
-            self.video_ids_scene_dict[id] = video_ids if not flatten_room_hierarchy else flatten_chain(video_ids)
+            self.image_ids_scene_dict_hier[id] = image_ids # if not flatten_room_hierarchy else flatten_chain(image_ids)
+            self.video_ids_scene_dict_hier[id] = video_ids # if not flatten_room_hierarchy else flatten_chain(video_ids)
             self.split_id_idx_map[id] = self.all_museum_category_str_idx_map[get_museum_category_from_name(id)]
+
+        # with open(self.data_image_art_path, 'rb') as f:
+        #     self.image_artworks_feature_dict = pickle.load(f)
+
+        # with open(self.data_video_art_path, 'rb') as f:
+        #     self.video_artworks_feature_dict = pickle.load(f)['features']
+
+        # an hacky conversion to hdf5 format to save memory
+        import os, h5py
+        if logger: logger.info(f"Converting the feature dict to hdf5 format to save memory")
+        self.feature_dict_h5f_fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tmp", "tmp_features.hdf5")
+        if os.path.exists(self.feature_dict_h5f_fn):
+            os.remove(self.feature_dict_h5f_fn) # remove old
+        compression = None
+
+        with h5py.File(self.feature_dict_h5f_fn, "w") as h5f:
+            
+            if logger: logger.info(f"  - image features from {self.data_image_art_path}")
+            with open(self.data_image_art_path, 'rb') as f:
+                image_data_dict = pickle.load(f)
+            group = h5f.create_group('images')
+            for key, value in tqdm(image_data_dict.items()):
+                str_key = str(key)
+                group.create_dataset(str_key, data=value, compression=compression)
+
+            if logger: logger.info(f"  - video features from {self.data_video_art_path}")
+            with open(self.data_video_art_path, 'rb') as f:
+                video_data_dict = pickle.load(f)['features']
+            group = h5f.create_group('videos')
+            for key, value in tqdm(video_data_dict.items()):
+                str_key = str(key)
+                group.create_dataset(str_key, data=value, compression=compression)
+
+            if logger: logger.info(f"  - description hierarchical organization of {self.description_path}")
+            descriptions_room_sentence_num = {
+                k:[len(el) for el in v]
+                for k,v in description_feature_dict.items()
+            }
+            group = h5f.create_group('descriptions_room_sentence_num')
+            for key, value in tqdm(descriptions_room_sentence_num.items()):
+                str_key = str(key)
+                group.create_dataset(str_key, data=value, compression=None)
+
+            if logger: logger.info(f"  - description features from {self.description_path}")
+            group = h5f.create_group('descriptions')
+            for key, value in tqdm(description_feature_dict.items()):
+                str_key = str(key)
+                group.create_dataset(str_key, data=torch.cat(value), compression=compression)
+            
+            if logger: logger.info(f"  - scene features from {self.data_scene_path}")
+            group = h5f.create_group('scenes')
+            for key, value in tqdm(scene_feature_dict.items()):
+                str_key = str(key)
+                group.create_dataset(str_key, data=value, compression=compression)
+
+        self.feature_dict_h5f = h5py.File(self.feature_dict_h5f_fn, "r")
 
     def __len__(self):
         return len(self.split_ids)
@@ -69,26 +137,41 @@ class ArtExhibitionFeatureDataset(Dataset):
         id = self.split_ids[index]
         category = self.split_id_idx_map[id]
 
-        desc_tensor = self.description_feature_dict[id]
+        # load descriptions reverting the flattening
+        desc_tensor = torch.from_numpy(self.feature_dict_h5f['descriptions'][id][()])
+        descriptions_room_sentence_num = self.feature_dict_h5f['descriptions_room_sentence_num'][id][()]
+        idxs = np.hstack((0,descriptions_room_sentence_num.cumsum()))
+        desc_tensor = [desc_tensor[idxs[i]:idxs[i+1]] for i in range(len(idxs)-1)]
 
+        #scene_tensor = torch.from_numpy(self.feature_dict_h5f['scenes'][id][()])
+        scene_tensor = tuple(el for el in torch.from_numpy(self.feature_dict_h5f['scenes'][id][()]))
+        
+        # todo fix missing images and videos case (is this "fixed"?)
+
+        scene_image_art_tensor = [[torch.from_numpy(self.feature_dict_h5f['images'][id][()]).squeeze() for id in els] for els in self.image_ids_scene_dict_hier[id]]
+        scene_image_art_tensor = [torch.stack(els) if len(els) != 0 else None for els in scene_image_art_tensor]
+
+        scene_video_art_tensor = [[torch.from_numpy(self.feature_dict_h5f['videos'][id][()]) for id in els] for els in self.video_ids_scene_dict_hier[id]]
+        scene_video_art_tensor = [torch.stack(els) if len(els) != 0 else None for els in scene_video_art_tensor]
+
+        assert len(scene_tensor) == len(scene_image_art_tensor), f"scene_image_art_tensor dimensional mismatch error: {len(scene_tensor)} != {len(scene_image_art_tensor)}"
+        assert len(scene_tensor) == len(scene_video_art_tensor), f"scene_video_art_tensor dimensional mismatch error: {len(scene_tensor)} != {len(scene_video_art_tensor)}"
+
+        # we apply the data augmentation on the hierarchical version of the data
+        # as e.g. room order shuffling requires to have the room information
+        desc_tensor, scene_tensor, scene_image_art_tensor, \
+            scene_video_art_tensor = self.data_augmentation.apply_augmentation(
+                desc_tensor, scene_tensor, scene_image_art_tensor, scene_video_art_tensor
+            )
+        
+        # description flattening
+        desc_tensor = torch.cat(desc_tensor)
+        
+        # apply flattening if needed
         if self.flatten_room_hierarchy:
-            scene_tensor = torch.stack(self.scene_feature_dict[id])
-            scene_image_art_tensor = torch.stack([self.image_artworks_feature_dict[id].squeeze() for id in self.image_ids_scene_dict[id]]) if len(self.image_ids_scene_dict[id]) != 0 else None
-            scene_video_art_tensor = torch.stack([self.video_artworks_feature_dict[id] for id in self.video_ids_scene_dict[id]]) if len(self.video_ids_scene_dict[id]) != 0 else None
-            
-        else:
-            scene_tensor = self.scene_feature_dict[id]
-            
-            # todo fix missing images and videos case
-
-            scene_image_art_tensor = [[self.image_artworks_feature_dict[id].squeeze() for id in els] for els in self.image_ids_scene_dict[id]]
-            scene_image_art_tensor = [torch.stack(els) if len(els) != 0 else None for els in scene_image_art_tensor]
-            
-            scene_video_art_tensor = [[self.video_artworks_feature_dict[id] for id in els] for els in self.video_ids_scene_dict[id]]
-            scene_video_art_tensor = [torch.stack(els) if len(els) != 0 else None for els in scene_video_art_tensor]
-
-            assert len(scene_tensor) == len(scene_image_art_tensor)
-            assert len(scene_tensor) == len(scene_video_art_tensor)
+            scene_tensor = torch.cat(scene_tensor)
+            scene_image_art_tensor = torch.cat([el for el in scene_image_art_tensor if el != None]) if len(self.image_ids_scene_dict_hier[id]) != 0 else None
+            scene_video_art_tensor = torch.cat([el for el in scene_video_art_tensor if el != None])  if len(self.video_ids_scene_dict_hier[id]) != 0 else None
 
         return desc_tensor, scene_tensor, scene_image_art_tensor, scene_video_art_tensor, index, category
   
@@ -216,4 +299,179 @@ class ArtExhibitionFeatureDataset(Dataset):
 
         return collate_fn
 
- 
+    class DataAugmentationStrategy():
+        def __init__(self, strategy_name:Optional[str]):
+            self.strategy_name = strategy_name
+        
+        def apply_augmentation(self, desc_tensor, scene_tensor, scene_image_art_tensor, scene_video_art_tensor):
+            raise NotImplementedError("This method should be overridden by subclasses")
+        
+        def to_dict(self) -> dict:
+            """Return a JSON-serializable dict of this strategy."""
+            return {"name": self.strategy_name}
+        
+        @classmethod
+        def from_dict(cls, config: dict):
+            """Recreate a strategy from a dict."""
+            raise NotImplementedError("Must be implemented in subclass")
+        
+    class NoAugmentation(DataAugmentationStrategy):
+        def __init__(self):
+            super().__init__(None)
+
+        def apply_augmentation(self, desc_tensor, scene_tensor, scene_image_art_tensor, scene_video_art_tensor):
+            """
+            method that does nothing
+            """
+            return desc_tensor, scene_tensor, scene_image_art_tensor, scene_video_art_tensor
+
+        def to_dict(self) -> dict:
+            base = super().to_dict()
+            return base
+
+        @classmethod
+        def from_dict(cls, config: dict):
+            return cls()
+
+    class RoomShuffleAugmentation(DataAugmentationStrategy):
+        def __init__(self, shuffle_prob: float = 1.0, fix_first_room: bool = False, fix_last_room: bool = False):
+            super().__init__("RoomShuffleAugmentation")
+            self.shuffle_prob = shuffle_prob
+            self.fix_first_room = fix_first_room
+            self.fix_last_room = fix_last_room
+
+        def apply_augmentation(self, desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors):
+            if torch.rand(1).item() < self.shuffle_prob:
+                # compute a random permutation
+                if not self.fix_first_room and not self.fix_last_room:
+                    perm = torch.randperm(len(scene_tensors))
+                elif self.fix_first_room and not self.fix_last_room:
+                    perm = torch.cat((torch.tensor([0]), torch.randperm(len(scene_tensors)-1)+1))
+                elif not self.fix_first_room and self.fix_last_room:
+                    perm = torch.cat((torch.randperm(len(scene_tensors)-1), torch.tensor([len(scene_tensors)-1])))
+                else: # both
+                    if len(scene_tensors) < 2:
+                        perm = torch.arange(len(scene_tensors)) # no shuffle possible
+                    else:
+                        perm = torch.cat((torch.tensor([0]), torch.randperm(len(scene_tensors)-2)+1, torch.tensor([len(scene_tensors)-1])))
+                
+                assert len(scene_tensors) == len(desc_tensors), f"mismatch between scenes and textual descriptions tensors, {len(scene_tensors)} vs {len(desc_tensors)}"
+                desc_tensors = [desc_tensors[i] for i in perm]
+                scene_tensors = [scene_tensors[i] for i in perm]
+                if scene_image_art_tensors is not None:
+                    assert len(scene_tensors) == len(scene_image_art_tensors), f"mismatch between scenes and image art tensors, {len(scene_tensors)} vs {len(scene_image_art_tensors)}"
+                    scene_image_art_tensors = [scene_image_art_tensors[i] for i in perm]
+                if scene_video_art_tensors is not None:
+                    assert len(scene_tensors) == len(scene_video_art_tensors), f"mismatch between scenes and video art tensors, {len(scene_tensors)} vs {len(scene_video_art_tensors)}"
+                    scene_video_art_tensors = [scene_video_art_tensors[i] for i in perm]
+            return desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors
+
+        def to_dict(self) -> dict:
+            base = super().to_dict()
+            base.update({"shuffle_prob": self.shuffle_prob})
+            return base
+
+        @classmethod
+        def from_dict(cls, config: dict):
+            return cls(shuffle_prob=config.get("shuffle_prob", 1.0), 
+                       fix_first_room=config.get("fix_first_room", False), 
+                       fix_last_room=config.get("fix_last_room", False))
+
+    class PointOfViewFilteringFixedOffset(DataAugmentationStrategy):
+        def __init__(self, first_room_id_to_keep:int, offset:int):
+            super().__init__("PointOfViewFilteringFixedOffset")
+            self.first_room_id_to_keep = first_room_id_to_keep
+            self.offset = offset
+
+        def apply_augmentation(self, desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors):
+            """
+            method that for each room keep 1 element every self.offset elements starting from the self.first_room_id_to_keep,
+            it is implicitly assumed that the images can still represent the full room"""
+            scene_tensors = [st[self.first_room_id_to_keep::self.offset] for st in scene_tensors]
+            return desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors
+
+        def to_dict(self) -> dict:
+            base = super().to_dict()
+            base.update({
+                "first_room_id_to_keep": self.first_room_id_to_keep,
+                "offset": self.offset
+            })
+            return base
+
+        @classmethod
+        def from_dict(cls, config: dict):
+            return cls(
+                first_room_id_to_keep=config["first_room_id_to_keep"],
+                offset=config["offset"]
+            )
+    
+    class PointOfViewFilteringFixedOffsetSampling(DataAugmentationStrategy):
+        def __init__(self, offset:int):
+            super().__init__("PointOfViewFilteringFixedOffsetSampling")
+            self.offset = offset
+
+        def apply_augmentation(self, desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors):
+            """
+            method that for each room keep 1 element every self.offset elements starting from the a random position
+            betwee 0 and self.offset excluded,
+            it is implicitly assumed that the images can still represent the full room"""
+            first_room_id_to_keep = math.floor(np.random.random()*self.offset)
+            scene_tensors = [st[first_room_id_to_keep::self.offset] for st in scene_tensors]
+            return desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors
+
+        def to_dict(self) -> dict:
+            base = super().to_dict()
+            base.update({
+                "offset": self.offset
+            })
+            return base
+
+        @classmethod
+        def from_dict(cls, config: dict):
+            return cls(
+                offset=config["offset"]
+            )
+    
+    class PointOfViewFilteringRandomSampling(DataAugmentationStrategy):
+        def __init__(self, n:int):
+            super().__init__("PointOfViewFilteringFixedOffsetSampling")
+            self.n = n
+
+        def apply_augmentation(self, desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors):
+            """
+            method that for each room keep self.n elements randomly sampled
+            in this case the final elements may not represent the full room anymore"""
+            scene_tensors = [st[random.sample(range(0, len(st)), self.n)] for st in scene_tensors]
+            return desc_tensors, scene_tensors, scene_image_art_tensors, scene_video_art_tensors
+
+        def to_dict(self) -> dict:
+            base = super().to_dict()
+            base.update({
+                "n": self.n
+            })
+            return base
+
+        @classmethod
+        def from_dict(cls, config: dict):
+            return cls(
+                n=config["n"]
+            )
+    
+
+
+    @classmethod
+    def strategy_from_dict(cls, config: dict) -> DataAugmentationStrategy:
+        strategy_registry = {
+            None: cls.NoAugmentation,
+            "RoomShuffleAugmentation": cls.RoomShuffleAugmentation,
+            "PointOfViewFilteringFixedOffset": cls.PointOfViewFilteringFixedOffset,
+            "PointOfViewFilteringFixedOffsetSampling": cls.PointOfViewFilteringFixedOffsetSampling,
+            "PointOfViewFilteringRandomSampling": cls.PointOfViewFilteringRandomSampling
+        }
+        name = config["name"]
+        if name not in strategy_registry:
+            raise ValueError(f"Unknown strategy: {name}")
+        return strategy_registry[name].from_dict(config)
+
+
+

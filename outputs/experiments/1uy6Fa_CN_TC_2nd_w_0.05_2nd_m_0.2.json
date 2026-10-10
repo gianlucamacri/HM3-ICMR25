@@ -1,0 +1,35 @@
+{
+    "name": "1uy6Fa_CN_TC_2nd_w_0.05_2nd_m_0.2",
+    "uid": "1uy6Fa",
+    "description": "experiemnt with 2 loss components inter and intra class, margins 0.25 and 0.2, varing the weight of the two components",
+    "runs": [
+        {
+            "base_name": "1uy6Fa_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uy6l4_rnn_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uy7Ae_hier_by_room_rnn_meanPoolProc_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        },
+        {
+            "base_name": "1uy7hW_hier_by_room_rnn_meanPoolProc_cnn1d_video",
+            "n_tries": 3,
+            "dataset_name": "generatedDigitalExps",
+            "hf_username": "gianmaTest",
+            "wandb_project_name": "test_HM3_extension"
+        }
+    ]
+}
