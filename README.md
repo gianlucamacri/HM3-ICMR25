@@ -18,6 +18,7 @@ To clone the full repository you may use the following commands:
 
 ```
 git clone https://github.com/gianlucamacri/HM3-ICMR25.git
+cd HM3-ICMR25
 git submodule init
 git submodule update
 ```
